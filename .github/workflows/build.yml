@@ -15,11 +15,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout configuration
+      - name: Checkout DiziDice configuration
         uses: actions/checkout@v4
-
-      - name: Save apps.json
-        run: cp apps.json /tmp/apps.json
 
       - name: Checkout Frappe Docker
         uses: actions/checkout@v4
@@ -44,5 +41,6 @@ jobs:
           build-args: |
             FRAPPE_PATH=https://github.com/frappe/frappe
             FRAPPE_BRANCH=version-16
-          secrets: |
-            apps_json=/tmp/apps.json
+            CACHE_BUST=${{ github.sha }}
+          secret-files: |
+            apps_json=./apps.json
