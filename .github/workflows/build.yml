@@ -1,0 +1,48 @@
+name: Build DiziDice Frappe
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout configuration
+        uses: actions/checkout@v4
+
+      - name: Save apps.json
+        run: cp apps.json /tmp/apps.json
+
+      - name: Checkout Frappe Docker
+        uses: actions/checkout@v4
+        with:
+          repository: frappe/frappe_docker
+          path: frappe_docker
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Frappe image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frappe_docker
+          file: ./frappe_docker/images/layered/Containerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/dizidice-frappe:latest
+          build-args: |
+            FRAPPE_PATH=https://github.com/frappe/frappe
+            FRAPPE_BRANCH=version-16
+          secrets: |
+            apps_json=/tmp/apps.json
